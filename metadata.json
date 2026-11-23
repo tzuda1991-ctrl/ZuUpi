@@ -1,0 +1,6 @@
+{
+  "name": "UPI Gateway",
+  "description": "Laravel 12 UPI Gateway configured for GitHub and Railway deployment.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
