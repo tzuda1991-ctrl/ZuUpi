@@ -60,6 +60,15 @@ if [ "$PROCESS_TYPE" = "worker" ]; then
     exit 0
 fi
 
+# Ensure exactly one Apache MPM is loaded at runtime (PHP mod_php requires prefork).
+# Remove conflicting module symlinks rather than relying on a2dismod state.
+rm -f /etc/apache2/mods-enabled/mpm_event.load /etc/apache2/mods-enabled/mpm_event.conf
+rm -f /etc/apache2/mods-enabled/mpm_worker.load /etc/apache2/mods-enabled/mpm_worker.conf
+if [ ! -e /etc/apache2/mods-enabled/mpm_prefork.load ]; then
+    a2enmod mpm_prefork
+fi
+apache2ctl -t
+
 # Bind Apache dynamically to Railway's $PORT
 sed -ri "s/Listen [0-9]+/Listen ${PORT}/g" /etc/apache2/ports.conf
 sed -ri "s/<VirtualHost \*:[0-9]+>/<VirtualHost *:${PORT}>/g" /etc/apache2/sites-available/000-default.conf
