@@ -115,6 +115,14 @@ class InstallationManager
             return true;
         }
 
+        // Railway: allow only the database hostname provisioned in service configuration.
+        if (getenv('RAILWAY_ENVIRONMENT_ID')) {
+            $configuredHost = (string) config('database.connections.mysql.host');
+            return $configuredHost !== ''
+                && str_ends_with(strtolower($configuredHost), '.railway.internal')
+                && strcasecmp(trim($host), $configuredHost) === 0;
+        }
+
         $allowRemote = (bool) config('installer.allow_remote_db', false);
         if (! $allowRemote) {
             $envVal = getenv('INSTALLER_ALLOW_REMOTE_DB')
