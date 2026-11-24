@@ -157,7 +157,7 @@ class Order extends Model
      * carries our order number so the provider status API can find this exact payment.
      * For manual / personal UPI accounts, `tr` is omitted per NPCI P2P guidelines to
      * prevent rejection by consumer UPI apps (Google Pay, PhonePe, Paytm), and the
-     * order reference is preserved in `tn`.
+     * order reference remains in our database; optional payment notes are omitted.
      */
     public function upiIntentUrl(string $scheme = 'upi://pay'): string
     {
@@ -175,7 +175,9 @@ class Order extends Model
             $params['tr'] = $this->order_no;
         }
 
-        $params['tn'] = $this->note ?: $this->order_no;
+        if (! $isManual) {
+            $params['tn'] = $this->note ?: $this->order_no;
+        }
 
         return $scheme.'?'.http_build_query($params, '', '&', PHP_QUERY_RFC3986);
     }
