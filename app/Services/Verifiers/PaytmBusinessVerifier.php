@@ -59,6 +59,20 @@ class PaytmBusinessVerifier implements Verifier
             ]);
         }
 
+        // Record only bounded, non-sensitive diagnostic fields; never log credentials or raw responses.
+        Log::info('Paytm Business verification response', [
+            'order_id' => $order->order_no,
+            'http_status' => $response->status(),
+            'provider_status' => in_array($data['STATUS'] ?? null, ['TXN_SUCCESS', 'TXN_FAILURE', 'PENDING', 'NO_RECORD_FOUND'], true) ? $data['STATUS'] : 'unknown',
+            'response_code' => preg_match('/^[0-9]{1,8}$/D', (string) ($data['RESPCODE'] ?? '')) ? (string) $data['RESPCODE'] : null,
+            'has_order_reference' => isset($data['ORDERID']),
+            'has_amount' => isset($data['TXNAMOUNT']),
+        ]);
+
+        if (! $response->successful()) {
+            return VerificationResult::pending(['code' => 'http_error', 'http_status' => $response->status()]);
+        }
+
         if (($data['STATUS'] ?? null) !== 'TXN_SUCCESS') {
             return VerificationResult::pending($this->sanitizeProviderData($data));
         }
