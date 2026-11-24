@@ -1,12 +1,23 @@
 @extends('layouts.app')
 @section('title', 'Transaction '.$order->order_no)
-@section('subtitle', 'Read-only debugger · No provider request is made from this page.')
+@section('subtitle', 'Transaction diagnostics · Provider verification on request.')
 @section('back', route('admin.transactions.index'))
 
 @section('content')
 <div class="mb-6 rounded-xl px-5 py-4 ring-1 {{ $order->environment === 'sandbox' ? 'bg-amber-50 text-amber-900 ring-amber-200' : 'bg-emerald-50 text-emerald-900 ring-emerald-200' }}">
     <div class="flex items-center gap-2 text-sm font-semibold"><x-icon name="shield" class="w-5 h-5" /> {{ strtoupper($order->environment) }}{{ $order->environment === 'sandbox' ? ' · TEST TRANSACTION' : ' · LIVE TRANSACTION' }}</div>
 </div>
+
+@if ($order->user_id === auth()->id() && $order->environment === 'live' && in_array($order->status, ['pending', 'expired'], true))
+    <div class="card mb-6 p-5">
+        <form method="POST" action="{{ route('orders.recheck', $order) }}">
+            @csrf
+            <button type="submit" class="btn btn-primary w-full sm:w-auto"><x-icon name="refresh" class="w-5 h-5" /> Recheck Payment</button>
+        </form>
+        <p class="mt-2 text-sm text-slate-500">Checks the provider again using existing verification limits. Does not manually mark a payment as paid.</p>
+        @if(session('status'))<p class="mt-2 text-sm font-semibold">{{ session('status') }}</p>@endif
+    </div>
+@endif
 
 <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
     <div class="xl:col-span-2 space-y-6">
